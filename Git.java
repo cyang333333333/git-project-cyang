@@ -16,20 +16,20 @@ public class Git {
 
     public static void init() {
         int exist = 0;
-        File git1 = new File(".git");
+        File git1 = new File("git");
         if (git1.exists() == false) {
             git1.mkdir();
 
         } else {
             exist+=1;
         }
-        File git2 = new File(".git/objects");
+        File git2 = new File("git/objects");
         if (git2.exists() == false) {
             git2.mkdir();
         } else {
             exist+=1;
         }
-        File git3 = new File(".git/index");
+        File git3 = new File("git/index");
         if (git3.exists() == false) {
             try {
                 git3.createNewFile();   
@@ -39,7 +39,7 @@ public class Git {
         } else {
             exist+=1;
         }
-        File git4 = new File(".git/HEAD");
+        File git4 = new File("git/HEAD");
         if (git4.exists() == false) {
             try {
                 git4.createNewFile();   
@@ -84,7 +84,7 @@ public class Git {
 
     public static void blob(String filePath) throws IOException {
         String fileName = hashFile(filePath);
-        String newpath = ".git/objects/" + fileName;
+        String newpath = "git/objects/" + fileName;
         File hashed = new File(newpath);
         hashed.createNewFile();
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
