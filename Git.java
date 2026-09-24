@@ -10,8 +10,7 @@ import java.security.MessageDigest;
 public class Git {
     public static void main(String[] args) throws IOException {
         init();
-        blob("README.md");
-        System.out.println(hashFile("empty.txt"));
+        add("README.md");
     }
 
     public static void init() {
@@ -60,7 +59,7 @@ public class Git {
     public static String hashFile(String filePath) throws IOException {
         String str = "";
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            str = reader.readLine();
+            str = reader.readAllAsString();
         } catch (IOException e) {
             System.out.println("cant");
         }
@@ -69,15 +68,11 @@ public class Git {
             byte[] hash = digest.digest(str.getBytes());
             StringBuilder hexString = new StringBuilder();
                 for (byte b : hash) {
-                    String hex = String.format("%02x", b);
-                    if (hex.length() == 1) {
-                        hexString.append('0');
-                    }
-                    hexString.append(hex);
+                    hexString.append(String.format("%02x", b));
                 }
             return hexString.toString();
         } catch (Exception e) {
-            System.out.println("cant missing file");
+            System.out.println("cant");
             return null;
         }
     }
@@ -101,5 +96,18 @@ public class Git {
         }
 
 
+    }
+
+    public static void index(String filePath) throws IOException {
+        String fileName = hashFile(filePath);
+        try (FileWriter writer = new FileWriter("git/index")) {
+            String line = fileName + " " + filePath + "\n";
+            writer.write(line);
+        }
+    }
+
+    public static void add(String filePath) throws IOException {
+        blob(filePath);
+        index(filePath);
     }
 }
