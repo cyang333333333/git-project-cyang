@@ -11,7 +11,7 @@ public class Git {
     public static void main(String[] args) throws IOException {
         init();
         blob("README.md");
-        
+        System.out.println(hashFile("empty.txt"));
     }
 
     public static void init() {
