@@ -3,13 +3,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.Buffer;
 import java.security.MessageDigest;
 
 
 public class Git {
     public static void main(String[] args) throws IOException {
-        init();
+        add("test/testing.txt");
         add("README.md");
     }
 
@@ -28,7 +27,7 @@ public class Git {
         } else {
             exist+=1;
         }
-        File git3 = new File("git/index");
+        File git3 = new File("git/INDEX");
         if (git3.exists() == false) {
             try {
                 git3.createNewFile();   
@@ -100,9 +99,14 @@ public class Git {
 
     public static void index(String filePath) throws IOException {
         String fileName = hashFile(filePath);
-        try (FileWriter writer = new FileWriter("git/index")) {
+        String current = "";
+        try (BufferedReader reader = new BufferedReader(new FileReader("git/INDEX"))) {
+                current = reader.readAllAsString();
+        }
+        try (FileWriter writer = new FileWriter("git/INDEX")) {
             String line = fileName + " " + filePath + "\n";
-            writer.write(line);
+            writer.write(current);
+            writer.append(line);
         }
     }
 
