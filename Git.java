@@ -7,12 +7,8 @@ import java.security.MessageDigest;
 
 
 public class Git {
-    public static void main(String[] args) throws IOException {
-        add("test/testing.txt");
-        add("README.md");
-    }
 
-    public static void init() {
+    public static boolean init() {
         int exist = 0;
         File git1 = new File("git");
         if (git1.exists() == false) {
@@ -50,8 +46,10 @@ public class Git {
 
         if (exist == 4) {
             System.out.println("Git Repository Already Exists");
+            return true;
         } else {
             System.out.println("Git Repository Created");
+            return false;
         }
     }
 
@@ -60,7 +58,7 @@ public class Git {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             str = reader.readAllAsString();
         } catch (IOException e) {
-            System.out.println("cant");
+            System.out.println("cant ");
         }
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -91,7 +89,7 @@ public class Git {
                 System.out.println("cant");
             }
         } catch (Exception e) {
-                System.out.println("cant");
+                System.out.println("cant ");
         }
 
 
