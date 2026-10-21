@@ -1,39 +1,48 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class GitTester {
     public static void main(String[] args) throws IOException {
         Git.init();
         File newText = new File("nexText.txt");
         newText.createNewFile();
-        checkRepo();
-        cleanup();
+        Git.add("nexText.txt");
+        Git.add("test/testing.txt");
+        // checkRepo();
+        // cleanup();
 
-        while (checkRepo() == false) {
-            cleanup();
-            Git.init();
-        }
-        
+        // while (checkRepo() == false) {
+        // cleanup();
+        // Git.init();
+        // }
+
+        ArrayList<String> list = Git.workingList();
+        System.out.println(Git.createTree(list, "test"));
+
+        // Git.createTree("test");
+        System.out.println(Git.workingList());
+
     }
 
     public static boolean checkRepo() {
         int exist = 0;
         File git1 = new File("git");
         if (git1.exists() == true) {
-            exist+=1;
+            exist += 1;
         }
         File git2 = new File("git/objects");
         if (git2.exists() == true) {
-            exist+=1;
+            exist += 1;
         }
         File git3 = new File("git/INDEX");
         if (git3.exists() == true) {
-            exist+=1;
+            exist += 1;
         }
         File git4 = new File("git/HEAD");
         if (git4.exists() == true) {
-            exist+=1;
-        } 
+            exist += 1;
+        }
         if (exist == 4) {
             System.out.println("Git Repository correctly initialized");
             return true;
@@ -59,6 +68,6 @@ public class GitTester {
         File git4 = new File("git/HEAD");
         if (git4.exists() == true) {
             git4.delete();
-        } 
+        }
     }
 }
