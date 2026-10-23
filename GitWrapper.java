@@ -58,7 +58,12 @@ public class GitWrapper {
      * @return The SHA1 hash of the new commit.
      */
     public String commit(String author, String message) {
-        return Git.commit(message, author);
+        try {
+            return Git.commit(message, author);
+        } catch (Exception e) {
+            System.out.println(e);
+            return "";
+        }
     }
 
     /**
@@ -72,37 +77,20 @@ public class GitWrapper {
      */
     public static void checkout(String commitHash) {
         // to-do: implement functionality here
-        Git.checkout(commitHash);
+        try {
+            Git.checkout(commitHash);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
-        
-
-
-        // String[] currentIndex = Git.rebuildHash(headHash).split("\n");
-        // String targetString = Git.rebuildHash(commitHash);
-        // String[] targetIndex = targetString.split("\n");
-
-        // for (int i = 0; i < currentIndex.length; i++) {
-        //     boolean found = false;
-        //     for (int j = 0; j < targetIndex.length; j++) {
-        //         if (currentIndex[i].split(" ", 2)[1].equals(targetIndex[j].split(" ", 2)[1])) {
-        //             found = true;
-        //         }
-        //     }
-            
-        //     if (found == false) {
-        //         try {
-        //             Files.delete(Paths.get(currentIndex[i].split(" ", 2)[1]));
-        //             File parentDirectory = new File(currentIndex[i].split(" ", 2)[1]).getParentFile();
-                    
-        //             while (parentDirectory.delete()) {
-        //                 parentDirectory = parentDirectory.getParentFile(); //handles nested folders; delete only works if folder empty
-        //             }
-        //         } catch (IOException e) {
-        //             System.out.println(e);
-        //         }
-        //     }
-        // }
+    public void createBranch(String branchName) {
+        try {
+            Git.createBranch(branchName);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
         
         
     

@@ -37,14 +37,29 @@ public class Git {
         if (headFile.exists() == false) {
             try {
                 headFile.createNewFile();
+                FileWriter fw = new FileWriter(headFile);
+                fw.write("ref: refs/heads/main");
+                fw.close();
             } catch (IOException e) {
                 System.out.println("cant make HEAD");
             }
         } else {
             fileExistsCount += 1;
         }
+        File refs = new File("git/refs/");
+        if (refs.exists() == false) {
+            refs.mkdir();
+        }
+        File heads = new File("git/refs/heads/");
+        if (heads.exists() == false) {
+            heads.mkdir();
+        } else {
+            fileExistsCount += 1;
+        }
 
-        if (fileExistsCount == 4) {
+
+
+        if (fileExistsCount == 5) {
             System.out.println("Git Repository Already Exists");
             return true;
         } else {
@@ -312,7 +327,7 @@ public class Git {
     }
 
 
-    public static String commit(String message, String authorName) {
+    public static String commit(String message, String authorName) throws IOException{
         //recursivly go through index + build it
         //list of commits singly linked
 
@@ -321,7 +336,7 @@ public class Git {
 
         try {
             String tree = buildRootTree();
-            String parentCommit = Files.readString(Paths.get("git/HEAD")).trim();
+            String parentCommit = getCurrentCommit();
             if (parentCommit.isEmpty()) {
                 isFirst = true;
             }
@@ -339,11 +354,17 @@ public class Git {
 
 
             //update HEAD
-            try (FileWriter writer = new FileWriter("git/HEAD")) {
-                    writer.write(commitHash);
-                    writer.close();
-            } catch (Exception e) {
-                System.out.println(e);
+            BufferedReader br = new BufferedReader(new FileReader("git/HEAD"));
+            String headstr = br.readAllAsString();
+            br.close();
+            if (headstr.substring(0, 5).equals("ref: ")) {
+                FileWriter fw = new FileWriter("git/" + headstr.substring(5));
+                fw.write(commitHash);
+                fw.close();
+            } else {
+                FileWriter fw = new FileWriter("git/HEAD");
+                fw.write(commitHash);
+                fw.close();
             }
 
         } catch (IOException e) {
@@ -351,6 +372,23 @@ public class Git {
         }
 
         return commitHash;
+    }
+
+    public static String getCurrentCommit() throws IOException{
+        BufferedReader br = new BufferedReader(new FileReader("git/HEAD"));
+        String headstr = br.readAllAsString();
+        br.close();
+        if (headstr.startsWith("ref: ")) {
+            String newpath = "git/" + headstr.substring(5);
+            File file = new File(newpath);
+            if (file.exists() == false) {
+                return "";
+            }
+            Path p = Paths.get(newpath);
+            return Files.readString(p);
+        }
+        return headstr; // dtatched
+        
     }
 
     public static String rebuildHash(String commitHash) {
@@ -408,16 +446,46 @@ public class Git {
         }
     }
 
-    public static void checkout(String commitHash) {
+    public static void checkout(String input) throws IOException{
         // to-do: implement functionality here
-        String headHash = "";
-        try {
-            headHash = Files.readString(Path.of("git/HEAD")).trim();
-        } catch (IOException e) {
-            System.out.println(e);
+        String commitHash = input;
+        // figure out if name is a branch or a commit
+        // create branch file and commit files, check if they exist
+        // if branch file,  set commit hash to that file's content's hash
+        // commit hash = input otherwise
+        // or if branch doesnt exist its error, but stretch goal mabye???
+        boolean isbranch = false;
+        File bf = new File("git/refs/heads/" + input);
+        File cf = new File("git/objects/" + input);
+        if (bf.exists()) {
+            BufferedReader br = new BufferedReader(new FileReader(bf));
+            commitHash = br.readAllAsString();
+            br.close();
+            isbranch = true;
+        } else if (bf.exists() == false && cf.exists() == false) {
+            //System.out.println("dsfsfdsfd");
+            //return; // stretch goal
+            String current = getCurrentCommit();
+            if (current.equals("") == false) {
+                FileWriter fw = new FileWriter(bf);
+                fw.write(current);
+                fw.close();
+            }
+            FileWriter fw = new FileWriter("git/HEAD");
+            fw.write("ref: refs/heads/" + input);
+            fw.close();
+            return;
         }
 
-        String[] currentIndex = Git.rebuildHash(headHash).split("\n");
+
+        
+
+        String headHash = getCurrentCommit();
+        String[] currentIndex = new String[0];
+        if (headHash.equals("") == false) {
+            String[] temp = rebuildHash(headHash).split("\n");
+            currentIndex = temp;
+        }
         String targetString = Git.rebuildHash(commitHash);
         String[] targetIndex = targetString.split("\n");
 
@@ -457,12 +525,32 @@ public class Git {
         //rewrite index file
         Git.addToIndexAfterRebuilding(targetString);
 
-        //update head
+        //update head, branch if branch, commit if c
         try (FileWriter writer = new FileWriter("git/HEAD")) {
-            writer.write(commitHash);
+            if (isbranch == true) {
+                writer.write("ref: refs/heads/" + input);
+            } else {
+                writer.write(commitHash);
+            }
             writer.close();
         } catch (IOException e) {
             System.out.println(e);
+        }
+    }
+
+    public static void createBranch(String branch) throws IOException {
+        String current = getCurrentCommit();
+        if (current.equals("") == false) {
+            File b = new File("git/refs/heads/" + branch);
+            if (b.exists() == false) {
+                FileWriter fw = new FileWriter(b);
+                fw.write(current);
+                fw.close();
+            } else {
+                System.out.println("It is an error if that branch already exists");
+            }
+        } else {
+             System.out.println("or if there are no commits yet");
         }
     }
 
