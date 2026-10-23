@@ -19,3 +19,14 @@ Bugs I found (5.1)
 - i added createbranch, the name basically it just creates the branch in git/refs/heads
 - in checkout, i changed the commitHash arg to input because it can either be a branch or commit, it checks for branch or commit if they exist, and if its a branch i write to the head, if commit its just the hash
     -  i also did the stretch goal and what i did was when it was neither a existing branch or commit i made a new branch for the current commit and set head to ref: refs heads and the input, then it doesnt do anything after that
+
+
+How to use:
+
+GitWrapper gw = new GitWrapper();
+gw.init();
+gw.add("a.txt");
+gw.commit("Connor", "first");
+gw.createBranch("feature");
+gw.checkout("feature");
+gw.checkout("main");
