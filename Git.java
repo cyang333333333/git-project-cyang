@@ -184,6 +184,10 @@ public class Git {
             File file = new File(filePath);
             String parentDirectory = file.getParent();
 
+            if (parentDirectory == null) {
+                parentDirectory = "";
+            }
+
             // checking if the file belongs directly inside the directory we're creating the tree
             // for
             if (directoryPath.equals(parentDirectory)) {
@@ -192,9 +196,9 @@ public class Git {
             }
         }
 
-        String treeHash = hashFile(treeContents.toString());
+        String treeHash = hashFile(treeContents.toString().trim());
         FileWriter fw = new FileWriter("git/objects/" + treeHash);
-        fw.write(treeContents.toString());
+        fw.write(treeContents.toString().trim());
         fw.close();
         return treeHash;
     }
@@ -272,8 +276,7 @@ public class Git {
 
         String rootDirectory = Paths.get(wL.get(0).split(" ", 3)[2]).getName(0).toString();
 
-        while (wL.size() > 1 || !wL.get(0).split(" ", 3)[0].equals("tree")
-                || !wL.get(0).split(" ", 3)[2].equals(rootDirectory)) {
+        while (wL.isEmpty() == false) {
             String deepestDirectory = "";
             int maxDepth = -1;
 
@@ -296,13 +299,18 @@ public class Git {
                 }
             }
 
+
+            if (maxDepth == -1) {
+                return createTree(wL, "");
+            }
+
             String treeHash = createTree(wL, deepestDirectory);
             collapseWorkingList(wL, deepestDirectory, treeHash);
         }
 
-        return wL.get(0).split(" ", 3)[1];
-
+        return "";
     }
+
 
     public static String commit(String message, String authorName) {
         //recursivly go through index + build it
@@ -320,7 +328,11 @@ public class Git {
 
             String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             StringBuilder commit = new StringBuilder();
-            commit.append("tree: " + tree + "\nparent: " + parentCommit + "\nauthor: " + authorName + "\ndate: " + date + "\nmessage: " + message);
+            if (isFirst == true) {
+                commit.append("tree: " + tree + "\nauthor: " + authorName + "\ndate: " + date + "\nmessage: " + message);
+            } else {
+                commit.append("tree: " + tree + "\nparent: " + parentCommit + "\nauthor: " + authorName + "\ndate: " + date + "\nmessage: " + message);
+            }
 
             commitHash = hashString(commit.toString());
             Files.writeString(Paths.get("git/objects/" + commitHash), commit.toString());
@@ -357,7 +369,7 @@ public class Git {
         rebuildHashRecursive("", rootHash, index);
         
         //addToIndexAfterRebuilding(index.toString());
-        return index.toString();
+        return index.toString().trim();
 
     }
 
@@ -391,6 +403,64 @@ public class Git {
     public static void addToIndexAfterRebuilding(String index) {
         try (FileWriter writer = new FileWriter("git/index")) {
             writer.write(index.toString());
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+    }
+
+    public static void checkout(String commitHash) {
+        // to-do: implement functionality here
+        String headHash = "";
+        try {
+            headHash = Files.readString(Path.of("git/HEAD")).trim();
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+
+        String[] currentIndex = Git.rebuildHash(headHash).split("\n");
+        String targetString = Git.rebuildHash(commitHash);
+        String[] targetIndex = targetString.split("\n");
+
+        for (int i = 0; i < currentIndex.length; i++) {
+            try {
+                Files.deleteIfExists(Paths.get(currentIndex[i].split(" ", 2)[1]));
+                File parentDirectory = new File(currentIndex[i].split(" ", 2)[1]).getParentFile();
+                while (parentDirectory != null && parentDirectory.delete()) {
+                    parentDirectory = parentDirectory.getParentFile();
+                }
+
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+
+        for (int i = 0; i < targetIndex.length; i++) {
+            String hash = targetIndex[i].split(" ", 2)[0];
+            String path = targetIndex[i].split(" ", 2)[1];
+
+            File parentDirectory = new File(path).getParentFile();
+            if (parentDirectory != null) {
+                parentDirectory.mkdirs();
+            }
+
+            String contents = "";
+            try {
+                contents = Files.readString(Paths.get("git/objects/" + hash));
+                FileWriter writer = new FileWriter(path);
+                writer.write(contents);
+                writer.close();
+            } catch (IOException e) {
+                System.out.println(e);
+            }
+        }
+
+        //rewrite index file
+        Git.addToIndexAfterRebuilding(targetString);
+
+        //update head
+        try (FileWriter writer = new FileWriter("git/HEAD")) {
+            writer.write(commitHash);
+            writer.close();
         } catch (IOException e) {
             System.out.println(e);
         }

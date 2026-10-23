@@ -70,62 +70,9 @@ public class GitWrapper {
      *
      * @param commitHash The SHA1 hash of the commit to check out.
      */
-    public void checkout(String commitHash) {
+    public static void checkout(String commitHash) {
         // to-do: implement functionality here
-        String headHash = "";
-        try {
-            headHash = Files.readString(Path.of("git/HEAD")).trim();
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-
-        String[] currentIndex = Git.rebuildHash(headHash).split("\n");
-        String targetString = Git.rebuildHash(commitHash);
-        String[] targetIndex = targetString.split("\n");
-
-        for (int i = 0; i < currentIndex.length; i++) {
-            try {
-                Files.deleteIfExists(Paths.get(currentIndex[i].split(" ", 2)[1]));
-                File parentDirectory = new File(currentIndex[i].split(" ", 2)[1]).getParentFile();
-                while (parentDirectory != null && parentDirectory.delete()) {
-                    parentDirectory = parentDirectory.getParentFile();
-                }
-
-            } catch (Exception e) {
-                System.out.println(e);
-            }
-        }
-
-        for (int i = 0; i < targetIndex.length; i++) {
-            String hash = targetIndex[i].split(" ", 2)[0];
-            String path = targetIndex[i].split(" ", 2)[1];
-
-            File parentDirectory = new File(path).getParentFile();
-            if (parentDirectory != null) {
-                parentDirectory.mkdirs();
-            }
-
-            String contents = "";
-            try {
-                contents = Files.readString(Paths.get("git/objects/" + hash));
-                FileWriter writer = new FileWriter(path);
-                writer.write(contents);
-                writer.close();
-            } catch (IOException e) {
-                System.out.println(e);
-            }
-        }
-
-        //rewrite index file
-        Git.addToIndexAfterRebuilding(targetString);
-
-        //update head
-        try (FileWriter writer = new FileWriter("git/HEAD")) {
-            writer.write(commitHash);
-            writer.close();
-        } catch (IOException e) {
-            System.out.println(e);
-        }
+        Git.checkout(commitHash);
     }
 
         

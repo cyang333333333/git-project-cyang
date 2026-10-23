@@ -16,13 +16,13 @@ public class GitTester {
         // cleanup();
         // Git.init();
         // }
-
+/* 
         ArrayList<String> list = Git.workingList();
         System.out.println(Git.createTree(list, "test"));
 
         // Git.createTree("test");
         System.out.println(Git.workingList());
-
+/* */
     }
 
     public static boolean checkRepo() {
